@@ -1,0 +1,43 @@
+import openai
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+# ChatGPT API 설정
+openai.api_key = "org-ua3SY9GHAwSonImPOeKSVncd"
+
+def get_gpt_response(user_input):
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": user_input}]
+    )
+    return response['choices'][0]['message']['content']
+
+# Selenium으로 카카오톡 오픈채팅방 제어 (예제)
+def run_kakao_bot():
+    driver = webdriver.Chrome()  # 크롬 드라이버 설치 필요
+    driver.get("https://open.kakao.com/o/gLezUfUg")
+
+    # 로그인 및 채팅방 입장
+    time.sleep(10)  # 로그인 및 로딩 대기
+    
+    while True:
+        # 채팅 메시지 가져오기
+        messages = driver.find_elements(By.CLASS_NAME, "chat_message_class")  # 클래스 이름은 바뀔 수 있음
+        if messages:
+            last_message = messages[-1].text
+            print(f"User: {last_message}")
+            
+            # ChatGPT로 답변 생성
+            gpt_response = get_gpt_response(last_message)
+            print(f"GPT: {gpt_response}")
+
+            # 채팅창에 답변 입력
+            chat_input = driver.find_element(By.CLASS_NAME, "chat_input_class")  # 클래스 이름 바뀔 수 있음
+            chat_input.send_keys(gpt_response)
+            chat_input.send_keys("\n")  # Enter 키 입력
+
+        time.sleep(5)  # 메시지 확인 주기
+
+# 실행
+run_kakao_bot()
